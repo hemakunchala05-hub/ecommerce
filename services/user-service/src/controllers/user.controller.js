@@ -100,13 +100,13 @@ const getProfile = async (req, res) => {
 
 const updateProfile = async (req, res) => {
     try {
-        const userId = req.user.id;
+       const { name, email } = req.body;
 
-        const updatedUser = await updateProfileService(
-            userId,
-            req.body
-        );
-
+const updatedUser = await updateProfileService(
+  req.user.id,
+  name,
+  email
+); 
         if (!updatedUser) {
             return res.status(404).json({
                 success: false,

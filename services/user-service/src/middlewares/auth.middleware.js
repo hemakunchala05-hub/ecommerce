@@ -29,8 +29,8 @@ const authenticateUser = (req, res, next) => {
         // Attach user info to request (ensuring both id and _id are accessible)
         req.user = {
             ...decoded,
-            id: decoded.id || decoded._id,
-            _id: decoded.id || decoded._id
+           id: decoded.userId || decoded.id || decoded._id,
+_id: decoded.userId || decoded.id || decoded._id
         };
 
         next();
