@@ -1,0 +1,35 @@
+{
+  "name": "scalable-ecommerce-platform",
+  "version": "1.0.0",
+  "description": "Scalable E-Commerce Platform built with Node.js Microservices Architecture",
+  "scripts": {
+    "docker:up": "docker-compose up --build",
+    "docker:down": "docker-compose down",
+    "install:gateway": "cd api-gateway && npm install",
+    "install:user": "cd services/user-service && npm install",
+    "install:product": "cd services/product-service && npm install",
+    "install:cart": "cd services/cart-service && npm install",
+    "install:order": "cd services/order-service && npm install",
+    "install:payment": "cd services/payment-service && npm install",
+    "install:notification": "cd services/notification-service && npm install",
+    "install:all": "npm run install:gateway && npm run install:user && npm run install:product && npm run install:cart && npm run install:order && npm run install:payment && npm run install:notification",
+    "dev:gateway": "cd api-gateway && npm run dev",
+    "dev:user": "cd services/user-service && npm run dev",
+    "dev:product": "cd services/product-service && npm run dev",
+    "dev:cart": "cd services/cart-service && npm run dev",
+    "dev:order": "cd services/order-service && npm run dev",
+    "dev:payment": "cd services/payment-service && npm run dev",
+    "dev:notification": "cd services/notification-service && npm run dev",
+    "start": "cd services/user-service && npm run dev"
+  },
+  "keywords": [
+    "microservices",
+    "ecommerce",
+    "nodejs",
+    "express",
+    "mongodb",
+    "docker"
+  ],
+  "author": "",
+  "license": "ISC"
+}
