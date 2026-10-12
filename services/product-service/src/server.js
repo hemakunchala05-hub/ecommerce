@@ -1,13 +1,23 @@
-require('dotenv').config();
-const app = require('./app');
-const connectDB = require('./config/db');
-const logger = require('./utils/logger');
 
-const PORT = process.env.PORT || 5002;
+require("dotenv").config();
 
-// Connect Database
-connectDB();
+const app = require("./app");
+const connectDB = require("./config/db");
 
-app.listen(PORT, () => {
-  logger.info(`🚀 Product Service running on port ${PORT}`);
-});
+const PORT = process.env.PORT || 5004;
+
+const startServer = async () => {
+  try {
+    await connectDB();
+
+    app.listen(PORT, () => {
+      console.log(`Product Service running on port ${PORT}`);
+    });
+  } catch (error) {
+    console.error("Failed to start Product Service:", error.message);
+    process.exit(1);
+  }
+};
+
+startServer();
+

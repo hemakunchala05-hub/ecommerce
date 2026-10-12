@@ -17,10 +17,10 @@ const validateProductId = (id) => {
 };
 
 // Find a product by name, type and brand, ignoring capitalization
-const findDuplicateProduct = async (name, type, brand, excludeId = null) => {
+const findDuplicateProduct = async (pname, type, brand, excludeId = null) => {
   const filter = {
-    name: {
-      $regex: `^${escapeRegex(name.trim())}$`,
+    pname: {
+      $regex: `^${escapeRegex(pname.trim())}$`,
       $options: "i",
     },
     type: {
@@ -44,7 +44,7 @@ const findDuplicateProduct = async (name, type, brand, excludeId = null) => {
 
 // 1. Create a new product
 const createProduct = async (
-  name,
+  pname,
   type,
   brand,
   description,
@@ -55,8 +55,8 @@ const createProduct = async (
 ) => {
   // Validate identity fields before using trim()
   if (
-    typeof name !== "string" ||
-    !name.trim() ||
+    typeof pname !== "string" ||
+    !pname.trim() ||
     typeof type !== "string" ||
     !type.trim() ||
     typeof brand !== "string" ||
@@ -66,7 +66,7 @@ const createProduct = async (
   }
 
   const existingProduct = await findDuplicateProduct(
-    name,
+    pname,
     type,
     brand
   );
@@ -76,7 +76,7 @@ const createProduct = async (
   }
 
   const product = await Product.create({
-    name: name.trim(),
+    pname: pname.trim(),
     type: type.trim(),
     brand: brand.trim(),
     description,
@@ -139,7 +139,7 @@ const updateProduct = async (id, updateData) => {
 
   // Only allow fields that belong to a product
   const allowedFields = [
-    "name",
+    "pname",
     "type",
     "brand",
     "description",
@@ -165,13 +165,13 @@ const updateProduct = async (id, updateData) => {
   }
 
   // Build the product's identity after the proposed update
-  const name = updateData.name ?? currentProduct.name;
+  const pname = updateData.pname ?? currentProduct.pname;
   const type = updateData.type ?? currentProduct.type;
   const brand = updateData.brand ?? currentProduct.brand;
 
   if (
-    typeof name !== "string" ||
-    !name.trim() ||
+    typeof pname !== "string" ||
+    !pname.trim() ||
     typeof type !== "string" ||
     !type.trim() ||
     typeof brand !== "string" ||
@@ -182,7 +182,7 @@ const updateProduct = async (id, updateData) => {
 
   // Check whether another product already has this identity
   const duplicate = await findDuplicateProduct(
-    name,
+    pname,
     type,
     brand,
     id
@@ -195,7 +195,7 @@ const updateProduct = async (id, updateData) => {
   // Store trimmed identity values
   const safeUpdateData = {
     ...updateData,
-    name: name.trim(),
+    pname: pname.trim(),
     type: type.trim(),
     brand: brand.trim(),
   };
