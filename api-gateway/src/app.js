@@ -1,23 +1,25 @@
+
 const express = require("express");
 
-
-const routes = require("./routes");
+const userRoutes = require("./routes");
+const productRoutes = require("./routes/product.routes");
+const cartRoutes = require("./routes/cart.routes");
 
 const app = express();
 
-// Middlewares
-
+// Middleware
 app.use(express.json());
 
-
 // Routes
-app.use("/users", routes);
+app.use("/users", userRoutes);
+app.use("/products", productRoutes);
+app.use("/cart", cartRoutes);
 
 // Health check
 app.get("/health", (req, res) => {
   res.status(200).json({
     success: true,
-    message: "API Gateway is running"
+    message: "API Gateway is running",
   });
 });
 
@@ -27,7 +29,7 @@ app.use((err, req, res, next) => {
 
   res.status(500).json({
     success: false,
-    message: "Internal Server Error"
+    message: "Internal Server Error",
   });
 });
 
