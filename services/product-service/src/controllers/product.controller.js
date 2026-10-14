@@ -159,6 +159,86 @@ const deleteProduct = async (req, res) => {
   }
 };
 
+
+const reserveStock = async (req, res) => {
+  try {
+    const { orderId, userId, items } = req.body;
+
+    if (
+      !orderId ||
+      !userId ||
+      !Array.isArray(items) ||
+      items.length === 0
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Order ID, user ID, and items are required",
+      });
+    }
+
+    const reservation = await productService.reserveStock(
+      orderId,
+      userId,
+      items
+    );
+
+    return res.status(201).json({
+      success: true,
+      message: "Stock reserved successfully",
+      data: reservation,
+    });
+  } catch (error) {
+    const statusCode =
+      error.message === "Reservation already exists for this order" ? 409 :
+      error.message === "Insufficient stock" ||
+      error.message.startsWith("Insufficient stock for") ? 409 :
+      error.message === "Invalid product ID" ||
+      error.message === "Quantity must be a positive integer" ||
+      error.message === "Order ID, user ID, and items are required" ? 400 :
+      error.message.includes("not found") ? 404 : 500;
+
+    return res.status(statusCode).json({
+      success: false,
+      message: error.message || "Failed to reserve stock",
+    });
+  }
+};
+
+const releaseStock = async (req, res) => {
+  try {
+    const { orderId, userId } = req.body;
+
+    if (!orderId || !userId) {
+      return res.status(400).json({
+        success: false,
+        message: "Order ID and user ID are required",
+      });
+    }
+
+    const reservation = await productService.releaseStock(
+      orderId,
+      userId
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: "Stock released successfully",
+      data: reservation,
+    });
+  } catch (error) {
+    const statusCode =
+      error.message === "Stock reservation not found" ? 404 :
+      error.message === "Committed stock cannot be released" ? 409 :
+      500;
+
+    return res.status(statusCode).json({
+      success: false,
+      message: error.message || "Failed to release stock",
+    });
+  }
+};
+
+
 module.exports = {
   createProduct,
   getAllProducts,
@@ -166,4 +246,6 @@ module.exports = {
   getProductByType,
   updateProduct,
   deleteProduct,
+  reserveStock,
+  releaseStock
 };

@@ -1,13 +1,25 @@
-require('dotenv').config();
-const app = require('./app');
-const connectDB = require('./config/db');
-const logger = require('./utils/logger');
 
-const PORT = process.env.PORT || 5006;
+require("dotenv").config();
 
-// Connect Database
-connectDB();
+const app = require("./app");
+const connectDB = require("./config/db");
 
-app.listen(PORT, () => {
-  logger.info(`🚀 Notification Service running on port ${PORT}`);
-});
+const PORT = process.env.PORT || 5007;
+
+const startServer = async () => {
+  try {
+    await connectDB();
+
+    app.listen(PORT, () => {
+      console.log(`Notification Service running on port ${PORT}`);
+    });
+  } catch (error) {
+    console.error(
+      "Notification Service startup failed:",
+      error.message
+    );
+    process.exit(1);
+  }
+};
+
+startServer();

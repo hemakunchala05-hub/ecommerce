@@ -1,24 +1,22 @@
-const express = require('express');
-const cors = require('cors');
-const morgan = require('morgan');
-const orderRoutes = require('./routes/order.routes');
-const errorHandler = require('./middlewares/error.middleware');
+const express = require("express");
+const cors = require("cors");
+const morgan = require("morgan");
+
+const orderRoutes = require("./routes/order.routes");
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
-app.use(morgan('dev'));
+app.use(morgan("dev"));
 
-// Health check route
-app.get('/health', (req, res) => {
-  res.status(200).json({ status: 'UP', service: 'Order Service', timestamp: new Date() });
+app.get("/health", (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: "Order Service is running",
+  });
 });
 
-// Routes
-app.use('/api/orders', orderRoutes);
-
-// Error Middleware
-app.use(errorHandler);
+app.use("/orders", orderRoutes);
 
 module.exports = app;

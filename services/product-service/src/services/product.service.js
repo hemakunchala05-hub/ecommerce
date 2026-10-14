@@ -1,6 +1,6 @@
 
 
-
+const StockReservation = require("../models/stock-reservation.model");
 const Product = require("../models/product.model");
 const mongoose = require("mongoose");
 
@@ -227,6 +227,152 @@ const deleteProduct = async (id) => {
 };
 
 
+/**
+ * Atomically reserve stock for an order.
+ * Returns the updated product if enough stock exists.
+ */
+
+const reserveStock = async (orderId, userId, items) => {
+  if (
+    !orderId ||
+    !userId ||
+    !Array.isArray(items) ||
+    items.length === 0
+  ) {
+    throw new Error("Order ID, user ID, and items are required");
+  }
+
+  const existing = await StockReservation.findOne({ orderId });
+
+  if (existing) {
+    throw new Error("Reservation already exists for this order");
+  }
+
+  const normalizedItems = items.map((item) => {
+    validateProductId(item.productId);
+
+    if (!Number.isInteger(item.quantity) || item.quantity <= 0) {
+      throw new Error("Quantity must be a positive integer");
+    }
+
+    return {
+      productId: item.productId,
+      quantity: item.quantity,
+    };
+  });
+
+  const reservedItems = [];
+
+  try {
+    for (const item of normalizedItems) {
+      const product = await Product.findOneAndUpdate(
+        {
+          _id: item.productId,
+          stock: { $gte: item.quantity },
+        },
+        {
+          $inc: { stock: -item.quantity },
+        },
+        {
+          new: true,
+          runValidators: true,
+        }
+      );
+
+      if (!product) {
+        const exists = await Product.exists({ _id: item.productId });
+
+        if (!exists) {
+          throw new Error(`Product ${item.productId} not found`);
+        }
+
+        throw new Error(`Insufficient stock for ${product?.pname || item.productId}`);
+      }
+
+      reservedItems.push(item);
+    }
+
+    const reservation = await StockReservation.create({
+      orderId: String(orderId),
+      userId: String(userId),
+      items: normalizedItems,
+      status: "reserved",
+    });
+
+    return reservation;
+  } catch (error) {
+    // Restore stock already decremented during this attempt
+    for (const item of reservedItems.reverse()) {
+      await Product.updateOne(
+        { _id: item.productId },
+        { $inc: { stock: item.quantity } }
+      );
+    }
+
+    throw error;
+  }
+};
+
+const releaseStock = async (orderId, userId) => {
+  const reservation = await StockReservation.findOne({
+    orderId: String(orderId),
+    userId: String(userId),
+  });
+
+  if (!reservation) {
+    throw new Error("Stock reservation not found");
+  }
+
+  if (reservation.status === "released") {
+    return reservation;
+  }
+
+  if (reservation.status === "committed") {
+    throw new Error("Committed stock cannot be released");
+  }
+
+  // Claim the release so concurrent requests cannot both restore stock
+  const claimedReservation = await StockReservation.findOneAndUpdate(
+    {
+      _id: reservation._id,
+      status: "reserved",
+    },
+    {
+      $set: { status: "released" },
+    },
+    {
+      new: true,
+    }
+  );
+
+  if (!claimedReservation) {
+    const latest = await StockReservation.findById(reservation._id);
+
+    if (latest?.status === "released") {
+      return latest;
+    }
+
+    throw new Error("Reservation could not be released");
+  }
+
+  try {
+    for (const item of claimedReservation.items) {
+      await Product.updateOne(
+        { _id: item.productId },
+        { $inc: { stock: item.quantity } }
+      );
+    }
+
+    return claimedReservation;
+  } catch (error) {
+    // Keep the reservation marked released only if all stock updates succeed.
+    // Production implementation will need a MongoDB transaction/outbox or
+    // a recoverable release state to handle partial failures safely.
+    throw error;
+  }
+};
+
+
 module.exports = {
   createProduct,
   getAllProducts,
@@ -234,4 +380,6 @@ module.exports = {
   getProductByType,
   updateProduct,
   deleteProduct,
+  reserveStock,
+  releaseStock
 };

@@ -17,45 +17,43 @@ const getCartController = async (req, res) => {
       cart,
     });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+    return res.status(error.statusCode || 500).json({
+  success: false,
+  message: error.message,
+});
   }
 };
 
 // Add product to cart
 const addToCartController = async (req, res) => {
   try {
-    const { productId, quantity, price } = req.body;
+    const { productId, quantity } = req.body;
 
-    if (!productId || !quantity || price === undefined) {
+    if (!productId || quantity === undefined) {
       return res.status(400).json({
         success: false,
-        message: "productId, quantity and price are required",
+        message: "productId and quantity are required",
       });
     }
 
     const cart = await addToCart(
       req.user.id,
       productId,
-      quantity,
-      price
+      quantity
     );
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       message: "Product added to cart",
       cart,
     });
   } catch (error) {
-    res.status(500).json({
+    return res.status(error.statusCode || 500).json({
       success: false,
       message: error.message,
     });
   }
 };
-
 // Update cart item
 const updateCartItemController = async (req, res) => {
   try {
@@ -74,16 +72,16 @@ const updateCartItemController = async (req, res) => {
       quantity
     );
 
-    res.status(200).json({
+   res.status(200).json({
       success: true,
-      message: "Cart item updated",
+      message: "Cart item updated successfully",
       cart,
     });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+   return res.status(error.statusCode || 500).json({
+  success: false,
+  message: error.message,
+});
   }
 };
 
@@ -103,10 +101,10 @@ const removeFromCartController = async (req, res) => {
       cart,
     });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+    return res.status(error.statusCode || 500).json({
+  success: false,
+  message: error.message,
+});
   }
 };
 
@@ -121,10 +119,10 @@ const clearCartController = async (req, res) => {
       cart,
     });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+   return res.status(error.statusCode || 500).json({
+  success: false,
+  message: error.message,
+});
   }
 };
 
